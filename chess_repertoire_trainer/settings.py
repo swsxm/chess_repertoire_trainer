@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-l9i_b1#52)d0cjod9@nx16b2d7o84ok6d*jh=7fipd*lf6+d9z"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS")
 
 
 # Application definition
@@ -82,7 +82,7 @@ DATABASES = {
             "host": os.getenv("MONGO_HOST"),
             "port": int(os.getenv("MONGO_PORT", 21017)),
             "username": os.getenv("MONGO_USER"),
-            "password": os.getenv("MONGO_PASSWORD", ""),
+            "password": os.getenv("MONGO_PASSWORD"),
             "authSource": os.getenv("MONGO_AUTH_SOURCE", "admin"),
             "authMechanism": os.getenv("MONGO_AUTH_MECHANISM", "SCRAM-SHA-1"),
         },
