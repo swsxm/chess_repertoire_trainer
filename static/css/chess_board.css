@@ -1,0 +1,97 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column; /* Added in case H1 pushes board down */
+    height: 100vh;
+    background-color: white;
+    margin: 0; /* Good practice */
+    }
+h1 { /* Basic styling for the heading */
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px; /* Add space below heading */
+}
+.chessBoard {
+    width:80vw;
+    height: 80vw; /* Maintain square aspect ratio */
+    max-width: 600px; /* Max size from media query */
+    max-height: 600px; /* Max size from media query */
+    /* margin: 0 auto; */ /* Flex centering in body handles this */
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid #333; /* Add a border to see the container */
+}
+.square {
+    width:12.5%;
+    height: 12.5%;
+    /* float: left; */ /* Removed float */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Needed for absolute positioned coordinates */
+    box-sizing: border-box; /* Include padding/border in size */
+}
+.white {
+    background-color: #f0d9b5;
+}
+.black {
+    background-color: #b58863;
+}
+.coordinate {
+    /* height:auto; */ /* Not needed */
+    /* display:flex; */ /* Not needed */
+    bottom: 4%;
+    left:4%;
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    z-index: 2; /* Ensure coordinates are above pieces if needed, though usually not desired */
+    user-select: none; /* Prevent text selection */
+}
+.coordinate.rank { /* More specific selector */
+    top:4%;
+    right:4%;
+    bottom: auto; /* Override default */
+    left:auto; /* Override default */
+}
+/* .coordinate.file selector is just .coordinate by default (bottom left) */
+
+.whiteText {
+    color:#f0d9b5; /* Text color matching light squares */
+}
+.blackText {
+    color:#b58863; /* Text color matching dark squares */
+}
+.piece {
+    width: 90%; /* Slightly smaller than square */
+    height: 90%; /* Slightly smaller than square */
+    display: flex; /* Center image inside */
+    justify-content: center;
+    align-items: center;
+    /* z-index: 1; */ /* Usually not needed unless overlapping with coordinates */
+    cursor: pointer;
+}
+.piece img {
+    display: block; /* Remove extra space below image */
+    max-width: 100%;
+    max-height: 100%;
+    /* width:100%; */ /* Let max-width/max-height handle sizing */
+    height: auto;
+}
+
+
+/* Keep media queries as they were */
+@media (min-width:600px) {
+    /* .chessBoard styles handled by max-width/max-height now */
+}
+@media (max-width:600px) {
+    .coordinate {
+        font-size: 8px;
+    }
+    .piece {
+        width: 85%; /* Smaller pieces on small screens */
+        height: 85%;
+    }
+}
