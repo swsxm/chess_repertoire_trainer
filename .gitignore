@@ -85,3 +85,4 @@ Desktop.ini
 # Docker
 docker-compose.override.yml
 
+*.Identifier

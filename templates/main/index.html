@@ -4,234 +4,49 @@
   <head>
     <meta charset="utf-8">
     <title>Chess Board</title>
-    <link
-      rel="stylesheet"
-      href="{% static 'css/chess_board.css' %}"
-    />
+    <link rel="stylesheet" href="{% static 'css/chess_board.css' %}" />
   </head>
   <body>
+    <h1>Chess Repertoire Trainer</h1>
+
     <div class="chessBoard">
-      <!-- 8th Rank -->
-      <div class="square white">
-        <div class="piece rook" color="black">
-          <img src="{% static 'img/Black-Rook.png' %}" alt="Rook" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece knight" color="black">
-          <img src="{% static 'img/Black-Knight.png' %}" alt="Knight" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece bishop" color="black">
-          <img src="{% static 'img/Black-Bishop.png' %}" alt="Bishop" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece queen" color="black">
-          <img src="{% static 'img/Black-Queen.png' %}" alt="Queen" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece king" color="black">
-          <img src="{% static 'img/Black-King.png' %}" alt="King" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece bishop" color="black">
-          <img src="{% static 'img/Black-Bishop.png' %}" alt="Bishop" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece knight" color="black">
-          <img src="{% static 'img/Black-Knight.png' %}" alt="Knight" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="coordinate rank whiteText">8</div>
-        <div class="piece rook" color="black">
-          <img src="{% static 'img/Black-Rook.png' %}" alt="Rook" />
-        </div>
-      </div>
-      <!-- 7th Rank -->
-      <div class="square black">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="coordinate rank blackText">7</div>
-        <div class="piece pawn" color="black">
-          <img src="{% static 'img/Black-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <!-- 6th Rank -->
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black">
-        <div class="coordinate rank whiteText">6</div>
-      </div>
-      <!-- 5th Rank -->
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white">
-        <div class="coordinate rank blackText">5</div>
-      </div>
-      <!-- 4th Rank -->
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black">
-        <div class="coordinate rank whiteText">4</div>
-      </div>
-      <!-- 3rd Rank -->
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white"></div>
-      <div class="square black"></div>
-      <div class="square white">
-        <div class="coordinate rank blackText">3</div>
-      </div>
-      <!-- 2nd Rank -->
-      <div class="square white">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="coordinate rank whiteText">2</div>
-        <div class="piece pawn" color="white">
-          <img src="{% static 'img/White-Pawn.png' %}" alt="Pawn" />
-        </div>
-      </div>
-      <!-- 1st Rank -->
-      <div class="square black">
-        <div class="coordinate whiteText">a</div>
-        <div class="piece rook" color="white">
-          <img src="{% static 'img/White-Rook.png' %}" alt="Rook" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="coordinate blackText">b</div>
-        <div class="piece knight" color="white">
-          <img src="{% static 'img/White-Knight.png' %}" alt="Knight" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="coordinate whiteText">c</div>
-        <div class="piece bishop" color="white">
-          <img src="{% static 'img/White-Bishop.png' %}" alt="Bishop" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="coordinate blackText">d</div>
-        <div class="piece queen" color="white">
-          <img src="{% static 'img/White-Queen.png' %}" alt="Queen" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="coordinate whiteText">e</div>
-        <div class="piece king" color="white">
-          <img src="{% static 'img/White-King.png' %}" alt="King" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="coordinate blackText">f</div>
-        <div class="piece bishop" color="white">
-          <img src="{% static 'img/White-Bishop.png' %}" alt="Bishop" />
-        </div>
-      </div>
-      <div class="square black">
-        <div class="coordinate whiteText">g</div>
-        <div class="piece knight" color="white">
-          <img src="{% static 'img/White-Knight.png' %}" alt="Knight" />
-        </div>
-      </div>
-      <div class="square white">
-        <div class="coordinate rank blackText">1</div>
-        <div class="coordinate blackText">h</div>
-        <div class="piece rook" color="white">
-          <img src="{% static 'img/White-Rook.png' %}" alt="Rook" />
-        </div>
-      </div>
+      {% for rank in board %}
+          {% for element in rank %}
+            <div class="square {{ element.square_color }}">
+              
+              {# piece standard  #}
+              {% if element.piece_name %}
+                <div class="piece {{ element.piece_name }}" data-color="{{ element.piece_color }}">
+                  <img 
+                    src="{% static element.piece_img %}" 
+                    alt="{{ element.piece_name }}" 
+                  />
+                </div>
+              {% endif %}
+
+              {# piece on rightmost file #}
+              {% if forloop.last %}
+                <div 
+                  class="coordinate rank {% if element.square_color == 'white' %}blackText{% else %}whiteText{% endif %}"
+                >
+                  {{ forloop.parentloop.counter }}
+                </div>
+              {% endif %}
+
+              {# square with coordinate on the bottom rank #}
+              {% if forloop.parentloop.last %}
+                <div 
+                  class="coordinate file {% if element.square_color == 'white' %}blackText{% else %}whiteText{% endif %}"
+                >
+                  {{ element.file_letter }}
+                </div>
+              {% endif %}
+
+            </div>
+          {% endfor %}
+      {% endfor %}
     </div>
+    <script src="{% static 'js/chess_board.js' %}"></script>
   </body>
 </html>
 
