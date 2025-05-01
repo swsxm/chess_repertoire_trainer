@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Django migrations
+*/migrations/
+!*/migrations/__init__.py
+
+# Environment variables
+.env
+.env.*
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Pytest and coverage
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Django static and media files (optional: only ignore if generated)
+staticfiles/
+media/
+
+# Build artifacts
+*.log
+*.pot
+*.mo
+*.pyc
+*.swp
+*.bak
+
+# System files
+.DS_Store
+Thumbs.db
+
+# MyPy and Pylint
+.mypy_cache/
+.pyre/
+.pytype/
+pylint-report.txt
+pylint-global.txt
+
+# IDEs
+.vscode/
+.idea/
+*.code-workspace
