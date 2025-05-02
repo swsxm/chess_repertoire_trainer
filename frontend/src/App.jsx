@@ -27,6 +27,7 @@ export default function App() {
 
   const [history, setHistory] = useState([game.current.fen()]);
   const [visualIndex, setVisualIndex] = useState(0);
+  const [repertoireName, setRepertoireName] = useState('');
 
   function onPieceDrop(sourceSquare, targetSquare) {
     const move = game.current.move({
@@ -70,7 +71,39 @@ export default function App() {
     }
   }
 
-return (
+  async function handleSave() {
+    const moves = game.current.history({ verbose: true }).map(move => move.from + move.to);
+    const line = moves.join(' ');
+
+    if (!repertoireName.trim()) {
+      alert("Please enter a repertoire name.");
+      return;
+    }
+
+    if (line.length === 0) {
+      alert("No moves to save.");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: repertoireName, line }),
+      });
+
+      const result = await response.json();
+      console.log("Server response:", result);
+      alert("Line saved successfully!");
+    } catch (error) {
+      console.error("Error saving line:", error);
+      alert("Failed to save line.");
+    }
+  }
+
+  return (
     <div style={{
       display: 'flex',
       justifyContent: 'center',
@@ -79,6 +112,16 @@ return (
     }}>
       <div style={{ padding: 16, width: 500 }}>
         <h3 style={{ textAlign: 'center' }}>Chess Repertoire Trainer</h3>
+
+        <div style={{ marginBottom: 10, textAlign: 'center' }}>
+          <input
+            type="text"
+            value={repertoireName}
+            onChange={e => setRepertoireName(e.target.value)}
+            placeholder="Enter repertoire name"
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
 
         <Chessboard
           id="BasicBoard"
@@ -94,6 +137,7 @@ return (
           <button onClick={goBackward}>⬅ Backward</button>
           <button onClick={goForward}>Forward ➡</button>
           <button onClick={handleUndo}>❌ Undo Move</button>
+          <button onClick={handleSave}>💾 Save Line</button>
         </div>
       </div>
     </div>

@@ -22,5 +22,5 @@ from chess_repertoire_trainer.views import submit_data
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("test", submit_data, name="submit_data"),
+    path("submit", submit_data, name="submit_data"),
 ]

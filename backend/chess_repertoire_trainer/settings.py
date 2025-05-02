@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from mongoengine import connect
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -52,6 +54,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 ROOT_URLCONF = "chess_repertoire_trainer.urls"
@@ -77,22 +85,15 @@ WSGI_APPLICATION = "chess_repertoire_trainer.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "djongo",
-        "NAME": os.getenv("MONGO_DB_NAME"),
-        "ENFORCE_SCHEMA": False,
-        "CLIENT": {
-            "host": os.getenv("MONGO_HOST"),
-            "port": int(os.getenv("MONGO_PORT", 21017)),
-            "username": os.getenv("MONGO_USER"),
-            "password": os.getenv("MONGO_PASSWORD"),
-            "authSource": os.getenv("MONGO_AUTH_SOURCE", "admin"),
-            "authMechanism": os.getenv("MONGO_AUTH_MECHANISM", "SCRAM-SHA-1"),
-        },
-    }
-}
-
+connect(
+    db=os.getenv("MONGO_DB_NAME"),
+    host=os.getenv("MONGO_HOST"),
+    port=int(os.getenv("MONGO_PORT", 27017)),
+    username=os.getenv("MONGO_USER"),
+    password=os.getenv("MONGO_PASSWORD"),
+    authentication_source=os.getenv("MONGO_AUTH_SOURCE", "admin"),
+    authentication_mechanism=os.getenv("MONGO_AUTH_MECHANISM", "SCRAM-SHA-1"),
+)
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
