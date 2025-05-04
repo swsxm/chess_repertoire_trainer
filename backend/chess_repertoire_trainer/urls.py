@@ -18,10 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from chess_repertoire_trainer.views import get_moves, submit_data
+from chess_repertoire_trainer.views import get_moves, get_repertoire, submit_data
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("submit", submit_data, name="submit_data"),
     path("get_moves", get_moves, name="get_moves"),
+    path("get_repertoire", get_repertoire, name="get_repertoire"),
 ]

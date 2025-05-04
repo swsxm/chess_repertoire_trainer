@@ -90,3 +90,27 @@ def get_moves(request):
     except Exception as e:
         print(e)
         return JsonResponse([], safe=False, status=200)
+
+
+@csrf_exempt
+def get_repertoire(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    try:
+        payload = json.loads(request.body)
+        name = payload.get("name")
+
+        if not name:
+            return HttpResponseBadRequest(json.dumps({"error": "Missing 'name'"}))
+
+    except Exception:
+        return HttpResponseBadRequest(json.dumps({"error": "Invalid request body"}))
+
+    try:
+        rep = Repertoire.objects.get(name=name)
+        print(rep.tree)
+        return JsonResponse({"repertoire": rep.tree})
+    except Exception as e:
+        print(e)
+        return JsonResponse({}, safe=False, status=200)
