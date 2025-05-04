@@ -1,219 +1,209 @@
-import React, { useState, useRef, useEffect } from 'react'; 
+import React, { useState, useRef, useEffect } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 
-
-export default function Play() {
+export default function Repertoire() {
   const game = useRef(new Chess());
 
-  const [history, setHistory] = useState([game.current.fen()]);
+  const [repertoireLines, setRepertoireLines]       = useState([]);
+  const [selectedLineIndex, setSelectedLineIndex]   = useState(0);
+  const [activeLine, setActiveLine]                 = useState([]);
+
+  const [history, setHistory]       = useState([game.current.fen()]);
+  const [moveIndex, setMoveIndex]   = useState(0);
   const [visualIndex, setVisualIndex] = useState(0);
+
   const [repertoireName, setRepertoireName] = useState('');
-
-  const [boardArrows, setBoardArrows] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError]         = useState(null);
+  const [solved, setSolved]       = useState(false);  
 
   useEffect(() => {
-    const trimmedRepertoireName = repertoireName.trim();
+    game.current.load(history[visualIndex]);
+  }, [visualIndex, history]);
 
-    if (!trimmedRepertoireName) {
-      setBoardArrows([]); 
-      return; 
-    }
-
-    let isMounted = true; 
-    const currentHistoryVerbose = game.current.history({ verbose: true });
-    const moves = currentHistoryVerbose.map(move => move.from + move.to);
-    const line = moves.join(' ');
-
-    const fetchRepertoireMoves = async () => {
-      setIsLoadingMoves(true);
-      setBoardArrows([]);  
-
-      try {
-        const response = await fetch('http://localhost:8000/get_moves', { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: trimmedRepertoireName, 
-            line: line 
-          }),
-        });
-
-        if (!isMounted) return; 
-
-        if (!response.ok) {
-           let errorMsg = `HTTP error! Status: ${response.status}`;
-           try {
-               const errorData = await response.json();
-               errorMsg = `Server Error (${response.status}): ${errorData.message || 'Failed to fetch moves'}`;
-           } catch (e) {
-               
-           }
-           throw new Error(errorMsg);
-        }
-
-
-        const suggestedMoves = await response.json(); 
-
-        if (Array.isArray(suggestedMoves)) {
-          const newArrows = suggestedMoves.map(move => {
-            if (typeof move === 'string' && move.length >= 4) {
-              const from = move.substring(0, 2);
-              const to = move.substring(2, 4);
-              return [from, to, 'rgba(255, 165, 0, 0.6)'];
-            }
-             console.warn("Received invalid move format in response:", move);
-             return null; 
-          }).filter(Boolean); 
-
-          setBoardArrows(newArrows);
-        } else {
-             throw new Error("Invalid response format: Expected an array of moves.");
-        }
-
-      } catch (error) {
-        console.error("Error fetching repertoire moves:", error);
-        if (isMounted) {
-          setBoardArrows([]); 
-        }
+  function extractLines(tree) {
+    const lines = [];
+    function walk(node, prefix) {
+      if (!node || typeof node !== 'object') return;
+      const moves = Object.keys(node);
+      if (moves.length === 0) {
+        if (prefix.length) lines.push([...prefix]);
+        return;
       }
-      
-    };
-
-    fetchRepertoireMoves();
-
-    return () => {
-      isMounted = false; 
-    };
-  }, [visualIndex, history, repertoireName]);
-
-
-  function onPieceDrop(sourceSquare, targetSquare) {
-    const move = game.current.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: 'q',
-    });
-
-    if (move === null) return false;
-
-    const newFen = game.current.fen();
-    const newHistory = [...history.slice(0, visualIndex + 1), newFen];
-    setHistory(newHistory);
-    setVisualIndex(newHistory.length - 1); 
-
-    return true;
+      for (const mv of moves) {
+        prefix.push(mv);
+        walk(node[mv], prefix);
+        prefix.pop();
+      }
+    }
+    walk(tree, []);
+    return lines;
   }
 
-  function handleUndo() {
-    const moveUndone = game.current.undo();
+  const handleKeyDown = async e => {
+    if (e.key !== 'Enter') return;
+    const name = repertoireName.trim();
+    if (!name) return;
 
-    if (moveUndone) {
-        const newHistory = history.slice(0, -1);
-        if (newHistory.length > 0) { 
-            setHistory(newHistory);
-            setVisualIndex(newHistory.length - 1); 
-        }
-    } else {
-        console.log("Cannot undo further.");
-    }
-  }
-
-
-  function goBackward() {
-    const newIndex = visualIndex - 1;
-    if (newIndex >= 0) {
-      setVisualIndex(newIndex); 
-    }
-  }
-
-  function goForward() {
-    const newIndex = visualIndex + 1;
-    if (newIndex < history.length) {
-      setVisualIndex(newIndex); 
-    }
-  }
-
-  async function handleSave() {
-    const currentHistoryVerbose = game.current.history({ verbose: true });
-    const moves = currentHistoryVerbose.map(move => move.from + move.to);
-    const line = moves.join(' ');
-
-    if (!repertoireName.trim()) {
-      alert("Please enter a repertoire name.");
-      return;
-    }
-
-    if (line.length === 0) {
-      alert("No moves to save.");
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/submit', { 
+      const res = await fetch('http://localhost:8000/get_repertoire', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: repertoireName.trim(), line }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown server error' }));
-        throw new Error(`Server responded with ${response.status}: ${errorData.message || 'Failed to save'}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
       }
+      const data = await res.json();
+      const tree = data.repertoire || {};
+      const lines = extractLines(tree);
+      if (!lines.length) throw new Error("No lines found");
 
-      const result = await response.json();
-      console.log("Server response:", result);
-      alert("Line saved successfully!");
-    } catch (error) {
-      console.error("Error saving line:", error);
-      alert(`Failed to save line: ${error.message}`);
+      game.current.reset();
+      setHistory([game.current.fen()]);
+      setMoveIndex(0);
+      setVisualIndex(0);
+      setSolved(false);
+
+      setRepertoireLines(lines);
+      setSelectedLineIndex(0);
+      setActiveLine(lines[0]);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
+  const handleVariantChange = e => {
+    const idx = Number(e.target.value);
+    const line = repertoireLines[idx];
+    if (!line) return;
+
+    game.current.reset();
+    setHistory([game.current.fen()]);
+    setMoveIndex(0);
+    setVisualIndex(0);
+    setSelectedLineIndex(idx);
+    setActiveLine(line);
+    setSolved(false);  
+  };
+
+  const onPieceDrop = (from, to) => {
+    if (moveIndex % 2 !== 0) return false;
+
+    const uci = from + to;
+    const expected = activeLine[moveIndex];
+    if (uci !== expected) {
+      alert(`❌ Wrong move! Expected ${expected}, got ${uci}.`);
+      return false;
+    }
+
+    game.current.move({ from, to, promotion: 'q' });
+    let newHist = [...history.slice(0, visualIndex + 1), game.current.fen()];
+    let idx = moveIndex + 1;
+
+    if (idx < activeLine.length) {
+      const mv = activeLine[idx];
+      const rf = mv.slice(0, 2), rt = mv.slice(2);
+      game.current.move({ from: rf, to: rt, promotion: 'q' });
+      newHist = [...newHist, game.current.fen()];
+      idx++;
+    }
+
+    setHistory(newHist);
+    setMoveIndex(idx);
+    setVisualIndex(newHist.length - 1);
+
+    if (idx >= activeLine.length) {
+      setSolved(true);
+    }
+
+    return true;
+  };
+
+  const goBackward = () => setVisualIndex(i => Math.max(0, i - 1));
+  const goForward  = () => setVisualIndex(i => Math.min(history.length - 1, i + 1));
+  const handleUndo = () => {
+    if (history.length <= 2) return;
+    const h = history.slice(0, -2);
+    setHistory(h);
+    setMoveIndex(mi => Math.max(0, mi - 2));
+    setVisualIndex(h.length - 1);
+    setSolved(false);  
+  };
 
   return (
     <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      flexDirection: 'column'
+      display: 'flex', justifyContent: 'center',
+      alignItems: 'center', height: '100vh', flexDirection: 'column',
     }}>
-      <div style={{ padding: 16, width: 500, maxWidth: '95%' }}> 
+      <div style={{ padding: 16, width: 500, maxWidth: '95%' }}>
         <h3 style={{ textAlign: 'center' }}>Chess Repertoire Trainer</h3>
 
-        <div style={{ marginBottom: 10, textAlign: 'center' }}>
-          <input
-            type="text"
-            value={repertoireName}
-            onChange={e => setRepertoireName(e.target.value)} 
-            placeholder="Enter Repertoire Name" 
-            style={{ width: "100%", padding: 8, boxSizing: 'border-box' }} 
-          />
-        </div>
+        <input
+          type="text"
+          value={repertoireName}
+          onChange={e => setRepertoireName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Enter repertoire name and press Enter"
+          style={{ width: '100%', padding: 8, marginBottom: 10 }}
+          disabled={isLoading}
+        />
+        {isLoading && <div>Loading…</div>}
+        {error    && <div style={{ color: 'red' }}>{error}</div>}
 
+        {repertoireLines.length > 0 && (
+          <div style={{ margin: '8px 0', textAlign: 'center' }}>
+            <label>
+              Choose line:{' '}
+              <select value={selectedLineIndex} onChange={handleVariantChange}>
+                {repertoireLines.map((_, i) => (
+                  <option key={i} value={i}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
 
         <Chessboard
-          id="BasicBoard"
+          id="RepertoireBoard"
           position={history[visualIndex]}
           onPieceDrop={onPieceDrop}
           boardOrientation="white"
-          customArrows={boardArrows}
           areArrowsAllowed={false}
-          arePremovesAllowed={true}
+          arePremovesAllowed={false}
           arePiecesDraggable={true}
         />
 
-        <div style={{ marginTop: 12, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={goBackward}>⬅ Backward</button>
-          <button onClick={goForward}>Forward ➡</button>
-          <button onClick={handleUndo}>❌ Undo Move</button>
-          <button onClick={handleSave}>💾 Save Line</button>
+        {solved && (
+          <div style={{
+            marginTop: 12,
+            padding: '8px',
+            backgroundColor: '#e0ffe0',
+            color: '#007700',
+            textAlign: 'center',
+            borderRadius: 4,
+          }}>
+            🎉 Line solved!
+          </div>
+        )}
+
+        <div style={{
+          marginTop: 12, display: 'flex',
+          gap: 10, justifyContent: 'center', flexWrap: 'wrap'
+        }}>
+          <button onClick={goBackward} disabled={visualIndex === 0}>⬅ Back</button>
+          <button onClick={handleUndo}  disabled={history.length <= 2}>❌ Undo</button>
+          <button onClick={goForward}   disabled={visualIndex === history.length - 1}>Forward ➡</button>
         </div>
       </div>
     </div>

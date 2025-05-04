@@ -1,209 +1,147 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react'; 
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 
-export default function Repertoire() {
+export default function Play() {
   const game = useRef(new Chess());
-
-  const [repertoireLines, setRepertoireLines]       = useState([]);
-  const [selectedLineIndex, setSelectedLineIndex]   = useState(0);
-  const [activeLine, setActiveLine]                 = useState([]);
-
-  const [history, setHistory]       = useState([game.current.fen()]);
-  const [moveIndex, setMoveIndex]   = useState(0);
+  const [history, setHistory] = useState([game.current.fen()]);
   const [visualIndex, setVisualIndex] = useState(0);
-
   const [repertoireName, setRepertoireName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]         = useState(null);
-  const [solved, setSolved]       = useState(false);  
+  const [boardArrows, setBoardArrows] = useState([]);
 
-  useEffect(() => {
-    game.current.load(history[visualIndex]);
-  }, [visualIndex, history]);
-
-  function extractLines(tree) {
-    const lines = [];
-    function walk(node, prefix) {
-      if (!node || typeof node !== 'object') return;
-      const moves = Object.keys(node);
-      if (moves.length === 0) {
-        if (prefix.length) lines.push([...prefix]);
-        return;
-      }
-      for (const mv of moves) {
-        prefix.push(mv);
-        walk(node[mv], prefix);
-        prefix.pop();
-      }
-    }
-    walk(tree, []);
-    return lines;
+  function getCurrentLine() {
+    const verbose = game.current.history({ verbose: true });
+    return verbose.map(m => m.from + m.to).join(' ');
   }
 
-  const handleKeyDown = async e => {
-    if (e.key !== 'Enter') return;
+  async function fetchRepertoireMoves() {
     const name = repertoireName.trim();
     if (!name) return;
-
-    setIsLoading(true);
-    setError(null);
-
+    setBoardArrows([]);
+    const line = getCurrentLine();
     try {
-      const res = await fetch('http://localhost:8000/get_repertoire', {
+      const response = await fetch('http://localhost:8000/get_moves', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, line }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `HTTP ${res.status}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `HTTP ${response.status}`);
       }
-      const data = await res.json();
-      const tree = data.repertoire || {};
-      const lines = extractLines(tree);
-      if (!lines.length) throw new Error("No lines found");
-
-      game.current.reset();
-      setHistory([game.current.fen()]);
-      setMoveIndex(0);
-      setVisualIndex(0);
-      setSolved(false);
-
-      setRepertoireLines(lines);
-      setSelectedLineIndex(0);
-      setActiveLine(lines[0]);
+      const suggested = await response.json();
+      if (!Array.isArray(suggested)) {
+        throw new Error('Expected an array of UCI moves');
+      }
+      const arrows = suggested
+        .filter(mv => typeof mv === 'string' && mv.length >= 4)
+        .map(mv => [mv.slice(0,2), mv.slice(2,4), 'rgba(255,165,0,0.6)']);
+      setBoardArrows(arrows);
     } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      console.log(err)
+    } 
+  }
+
+  const handleKeyDown = e => {
+    if (e.key === 'Enter') {
+      fetchRepertoireMoves();
     }
   };
 
-  const handleVariantChange = e => {
-    const idx = Number(e.target.value);
-    const line = repertoireLines[idx];
-    if (!line) return;
-
-    game.current.reset();
-    setHistory([game.current.fen()]);
-    setMoveIndex(0);
-    setVisualIndex(0);
-    setSelectedLineIndex(idx);
-    setActiveLine(line);
-    setSolved(false);  
-  };
-
-  const onPieceDrop = (from, to) => {
-    if (moveIndex % 2 !== 0) return false;
-
-    const uci = from + to;
-    const expected = activeLine[moveIndex];
-    if (uci !== expected) {
-      alert(`❌ Wrong move! Expected ${expected}, got ${uci}.`);
-      return false;
-    }
-
-    game.current.move({ from, to, promotion: 'q' });
-    let newHist = [...history.slice(0, visualIndex + 1), game.current.fen()];
-    let idx = moveIndex + 1;
-
-    if (idx < activeLine.length) {
-      const mv = activeLine[idx];
-      const rf = mv.slice(0, 2), rt = mv.slice(2);
-      game.current.move({ from: rf, to: rt, promotion: 'q' });
-      newHist = [...newHist, game.current.fen()];
-      idx++;
-    }
-
-    setHistory(newHist);
-    setMoveIndex(idx);
-    setVisualIndex(newHist.length - 1);
-
-    if (idx >= activeLine.length) {
-      setSolved(true);
-    }
-
+  function onPieceDrop(sourceSquare, targetSquare) {
+    const move = game.current.move({
+      from: sourceSquare,
+      to: targetSquare,
+      promotion: 'q',
+    });
+    if (move === null) return false;
+    const newFen = game.current.fen();
+    const newHistory = [...history.slice(0, visualIndex + 1), newFen];
+    setHistory(newHistory);
+    setVisualIndex(newHistory.length - 1);
     return true;
-  };
+  }
 
-  const goBackward = () => setVisualIndex(i => Math.max(0, i - 1));
-  const goForward  = () => setVisualIndex(i => Math.min(history.length - 1, i + 1));
-  const handleUndo = () => {
-    if (history.length <= 2) return;
-    const h = history.slice(0, -2);
-    setHistory(h);
-    setMoveIndex(mi => Math.max(0, mi - 2));
-    setVisualIndex(h.length - 1);
-    setSolved(false);  
-  };
+  function handleUndo() {
+    const moveUndone = game.current.undo();
+    if (moveUndone) {
+      const newHistory = history.slice(0, -1);
+      setHistory(newHistory);
+      setVisualIndex(newHistory.length - 1);
+    }
+  }
+
+  function goBackward() {
+    setVisualIndex(i => Math.max(0, i - 1));
+  }
+
+  function goForward() {
+    setVisualIndex(i => Math.min(history.length - 1, i + 1));
+  }
+
+  async function handleSave() {
+    const currentHistoryVerbose = game.current.history({ verbose: true });
+    const moves = currentHistoryVerbose.map(move => move.from + move.to);
+    const line = moves.join(' ');
+    if (!repertoireName.trim()) {
+      alert("Please enter a repertoire name.");
+      return;
+    }
+    if (line.length === 0) {
+      alert("No moves to save.");
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:8000/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: repertoireName.trim(), line }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown server error' }));
+        throw new Error(`Server responded with ${response.status}: ${errorData.message || 'Failed to save'}`);
+      }
+      alert("Line saved successfully!");
+    } catch (error) {
+      alert(`Failed to save line: ${error.message}`);
+    }
+  }
 
   return (
     <div style={{
-      display: 'flex', justifyContent: 'center',
-      alignItems: 'center', height: '100vh', flexDirection: 'column',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      flexDirection: 'column'
     }}>
       <div style={{ padding: 16, width: 500, maxWidth: '95%' }}>
         <h3 style={{ textAlign: 'center' }}>Chess Repertoire Trainer</h3>
-
-        <input
-          type="text"
-          value={repertoireName}
-          onChange={e => setRepertoireName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter repertoire name and press Enter"
-          style={{ width: '100%', padding: 8, marginBottom: 10 }}
-          disabled={isLoading}
-        />
-        {isLoading && <div>Loading…</div>}
-        {error    && <div style={{ color: 'red' }}>{error}</div>}
-
-        {repertoireLines.length > 0 && (
-          <div style={{ margin: '8px 0', textAlign: 'center' }}>
-            <label>
-              Choose line:{' '}
-              <select value={selectedLineIndex} onChange={handleVariantChange}>
-                {repertoireLines.map((_, i) => (
-                  <option key={i} value={i}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        )}
-
+        <div style={{ marginBottom: 10, textAlign: 'center' }}>
+          <input
+            type="text"
+            value={repertoireName}
+            onChange={e => setRepertoireName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter Repertoire Name and press Enter"
+            style={{ width: "100%", padding: 8, boxSizing: 'border-box' }}
+          />
+        </div>
         <Chessboard
-          id="RepertoireBoard"
+          id="BasicBoard"
           position={history[visualIndex]}
           onPieceDrop={onPieceDrop}
           boardOrientation="white"
+          customArrows={boardArrows}
           areArrowsAllowed={false}
-          arePremovesAllowed={false}
+          arePremovesAllowed={true}
           arePiecesDraggable={true}
         />
-
-        {solved && (
-          <div style={{
-            marginTop: 12,
-            padding: '8px',
-            backgroundColor: '#e0ffe0',
-            color: '#007700',
-            textAlign: 'center',
-            borderRadius: 4,
-          }}>
-            🎉 Line solved!
-          </div>
-        )}
-
-        <div style={{
-          marginTop: 12, display: 'flex',
-          gap: 10, justifyContent: 'center', flexWrap: 'wrap'
-        }}>
-          <button onClick={goBackward} disabled={visualIndex === 0}>⬅ Back</button>
-          <button onClick={handleUndo}  disabled={history.length <= 2}>❌ Undo</button>
-          <button onClick={goForward}   disabled={visualIndex === history.length - 1}>Forward ➡</button>
+        <div style={{ marginTop: 12, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button onClick={goBackward}>⬅ Backward</button>
+          <button onClick={goForward}>Forward ➡</button>
+          <button onClick={handleUndo}>❌ Undo Move</button>
+          <button onClick={handleSave}>💾 Save Line</button>
         </div>
       </div>
     </div>
