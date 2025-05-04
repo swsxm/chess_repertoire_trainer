@@ -1,5 +1,4 @@
 import json
-import sys
 
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -26,7 +25,6 @@ def submit_data(request):
 
     try:
         payload = json.loads(request.body)
-        print("Payload:", payload, file=sys.stdout)
 
         line = payload.get("line")
         name = payload.get("name")
@@ -109,7 +107,6 @@ def get_repertoire(request):
 
     try:
         rep = Repertoire.objects.get(name=name)
-        print(rep.tree)
         return JsonResponse({"repertoire": rep.tree})
     except Exception as e:
         print(e)

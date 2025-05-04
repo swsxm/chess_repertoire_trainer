@@ -20,7 +20,7 @@ export default function Play() {
     setBoardArrows([]);
     const line = getCurrentLine();
     try {
-      const response = await fetch('http://localhost:8000/get_moves', {
+      const response = await fetch('/api/get_moves', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, line }),
@@ -38,7 +38,7 @@ export default function Play() {
         .map(mv => [mv.slice(0,2), mv.slice(2,4), 'rgba(255,165,0,0.6)']);
       setBoardArrows(arrows);
     } catch (err) {
-      console.log(err)
+      console.log(err);
     } 
   }
 
@@ -59,6 +59,7 @@ export default function Play() {
     const newHistory = [...history.slice(0, visualIndex + 1), newFen];
     setHistory(newHistory);
     setVisualIndex(newHistory.length - 1);
+    fetchRepertoireMoves();
     return true;
   }
 
@@ -68,15 +69,20 @@ export default function Play() {
       const newHistory = history.slice(0, -1);
       setHistory(newHistory);
       setVisualIndex(newHistory.length - 1);
+      fetchRepertoireMoves();
     }
   }
 
   function goBackward() {
-    setVisualIndex(i => Math.max(0, i - 1));
+    const newIndex = Math.max(0, visualIndex - 1);
+    setVisualIndex(newIndex);
+    fetchRepertoireMoves();
   }
 
   function goForward() {
-    setVisualIndex(i => Math.min(history.length - 1, i + 1));
+    const newIndex = Math.min(history.length - 1, visualIndex + 1);
+    setVisualIndex(newIndex);
+    fetchRepertoireMoves();
   }
 
   async function handleSave() {
@@ -92,7 +98,7 @@ export default function Play() {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8000/submit', {
+      const response = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: repertoireName.trim(), line }),

@@ -17,12 +17,14 @@ from dotenv import load_dotenv
 from mongoengine import connect
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+IS_PROD = "TRUE" in os.getenv("PROD", "").upper()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
@@ -57,6 +59,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
+# if not IS_PROD:
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -85,10 +88,12 @@ WSGI_APPLICATION = "chess_repertoire_trainer.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+MONGO_HOST = "mongo" if IS_PROD else os.getenv("MONGO_HOST")
+
 connect(
     db=os.getenv("MONGO_DB_NAME"),
-    host=os.getenv("MONGO_HOST"),
     port=int(os.getenv("MONGO_PORT", 27017)),
+    host=MONGO_HOST,
     username=os.getenv("MONGO_USER"),
     password=os.getenv("MONGO_PASSWORD"),
     authentication_source=os.getenv("MONGO_AUTH_SOURCE", "admin"),

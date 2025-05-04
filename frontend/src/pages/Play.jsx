@@ -4,15 +4,15 @@ import { Chess } from 'chess.js';
 
 export default function Repertoire() {
   const game = useRef(new Chess());
-
+  
   const [repertoireLines, setRepertoireLines]       = useState([]);
   const [selectedLineIndex, setSelectedLineIndex]   = useState(0);
   const [activeLine, setActiveLine]                 = useState([]);
 
+
   const [history, setHistory]       = useState([game.current.fen()]);
   const [moveIndex, setMoveIndex]   = useState(0);
   const [visualIndex, setVisualIndex] = useState(0);
-
   const [repertoireName, setRepertoireName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]         = useState(null);
@@ -50,7 +50,7 @@ export default function Repertoire() {
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:8000/get_repertoire', {
+      const res = await fetch('/api/get_repertoire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),
