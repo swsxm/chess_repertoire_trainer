@@ -9,7 +9,6 @@ export default function Repertoire() {
   const [selectedLineIndex, setSelectedLineIndex]   = useState(0);
   const [activeLine, setActiveLine]                 = useState([]);
 
-
   const [history, setHistory]       = useState([game.current.fen()]);
   const [moveIndex, setMoveIndex]   = useState(0);
   const [visualIndex, setVisualIndex] = useState(0);
@@ -82,7 +81,14 @@ export default function Repertoire() {
   };
 
   const handleVariantChange = e => {
-    const idx = Number(e.target.value);
+    let idx;
+
+    if (e.target.value === 'random') {
+      idx = Math.floor(Math.random() * repertoireLines.length);
+    } else {
+      idx = Number(e.target.value);
+    }
+
     const line = repertoireLines[idx];
     if (!line) return;
 
@@ -92,7 +98,7 @@ export default function Repertoire() {
     setVisualIndex(0);
     setSelectedLineIndex(idx);
     setActiveLine(line);
-    setSolved(false);  
+    setSolved(false);
   };
 
   const onPieceDrop = (from, to) => {
@@ -164,6 +170,7 @@ export default function Repertoire() {
             <label>
               Choose line:{' '}
               <select value={selectedLineIndex} onChange={handleVariantChange}>
+                <option value="random">🎲 Random</option>
                 {repertoireLines.map((_, i) => (
                   <option key={i} value={i}>
                     {i + 1}
